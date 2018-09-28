@@ -9,10 +9,14 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "bcrypt": "^3.0.1",
     "body-parser": "^1.18.3",
     "cors": "^2.8.4",
     "express": "^4.16.3",
     "mongoose": "^5.2.12",
     "morgan": "^1.9.0"
+  },
+  "devDependencies": {
+    "nodemon": "^1.18.4"
   }
 }

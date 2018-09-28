@@ -8,7 +8,7 @@ const addPost = (req, res, next) => {
         username: req.body.username
     });
 
-    console.log(req.body);
+    // console.log(req.body);
 
     post
         .save()

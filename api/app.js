@@ -6,6 +6,7 @@ const cors = require('cors');
 
 // Routers
 const postRoutes = require('./routes/post');
+const userRoutes = require('./routes/user');
 
 //initiate the Express app
 const app = express();
@@ -27,6 +28,10 @@ app.use(cors());
 //use Routes
 //This is post route
 app.use('/posts', postRoutes);
+
+app.use('/user', userRoutes);
+
+
 
 //this is Root route
 app.use('/', (req, res, next) => {
