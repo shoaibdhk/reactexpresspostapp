@@ -29,7 +29,15 @@ const signUp = (req, res, next) => {
                                         password: req.body.password
                                     });
     
-                                    return newUser.save();
+                                    newUser
+                                        .save()
+                                        .then(user => {
+                                            
+                                            res.status(201).json({
+                                                message: "User created successfully!", 
+                                                user
+                                            });
+                                        })
 
                                 }
                                 
@@ -47,18 +55,16 @@ const signUp = (req, res, next) => {
                     });
                 }
             })
-            .then(user => {
-                res.status(201).json({
-                    message: "User created successfully!", 
-                    user
-                });
-            })
             .catch(err => {
                 res.status(500).json({
                     message: "Internal server error", 
                     error: err
                 });
             });
+    } else {
+        res.status(400).json({
+            message: "Seems you entered something invalid, Please provide all nedded information correctly!"
+        });
     }
 
 
@@ -71,14 +77,21 @@ const logIn = (req, res, next) => {
 const getUsers = (req, res, next) => {
     User
         .find()
+        .select("email username password")
         .then(result => {
-            res.json({
-                "Total Users": result.length, 
-                result
-            });
+            if(result.length > 0) {
+                res.status(200).json({
+                    "Total Users": result.length, 
+                    result
+                });
+            } else {
+                res.status(200).json({
+                    message: "Sorry! There have no user!"
+                });
+            }
         })
         .catch(err => {
-            res.json(err);
+            res.status(500).json(err);
         })
 }
 
@@ -91,7 +104,19 @@ const updateUser = (req, res, next) => {
 }
 
 const deleteUser = (req, res, next) => {
+    const id = req.params.id;
 
+    User
+        .findOneAndDelete({_id: id})
+        .select("email username")
+        .then(response => {
+            res.status(200).json({
+                message: `${response.username || response.email} is successfully DELETED!`
+            });
+        })
+        .catch(err => {
+            res.status(404).json(err);
+        });
 }
 
 module.exports = {

@@ -5,27 +5,16 @@ const postSchema = mongoose.Schema({
     postBody: {
         type: String, 
         required: [true, "Please write something to post"]
-    }, 
-    username: {
-        type: String, 
-        required: [true, "What is your username? "], 
-        unique: ["Sorry, this username is already used by someone! Please try using another one.", true]
     },
     time: {
         type: Date, 
         default: Date.now
     }, 
-    reactions: {
-        likes: {
-            count: {
-                type: Number, 
-                default: 0
-            }
-        }
-    }, 
-    comments: {
-        type: Array
+    user: {
+        type: mongoose.Schema.Types.ObjectId, 
+        ref: "User", 
+        required: true
     }
 });
 
-module.exports = mongoose.model('posts', postSchema);
+module.exports = mongoose.model('Post', postSchema);
