@@ -1,5 +1,8 @@
-const mongoose = require('mongoose');
+const jwt = require('jsonwebtoken');
+const bcrypt = require('bcrypt');
+
 const User = require('../model/user');
+const config = require('../config/config');
 
 const signUp = (req, res, next) => {
     if(req.body.username && req.body.email && req.body.password) {
@@ -32,10 +35,15 @@ const signUp = (req, res, next) => {
                                     newUser
                                         .save()
                                         .then(user => {
+
+                                            const token = jwt.sign({
+                                                username: req.body.username
+                                            }, config.secret, { expiresIn: "3h" });
                                             
                                             res.status(201).json({
                                                 message: "User created successfully!", 
-                                                user
+                                                user, 
+                                                token
                                             });
                                         })
 
@@ -71,18 +79,62 @@ const signUp = (req, res, next) => {
 }
 
 const logIn = (req, res, next) => {
+    const input = req.body.username ? { username: req.body.username } : { email: req.body.email }
+    
+    User
+        .findOne(input)
+        .then(user => {
+            
+            if(!user) {
+                res.status(404).json({
+                    message: "No user found! Please provide right/valid information"
+                });
+            }
 
+            bcrypt.compare(req.body.password, user.password, function(err, response) {
+                if(err) {
+                    res.status(400).json({
+                        message: "Password doesn't match"
+                    });
+                }
+
+                if(!response) {
+                    res.status(400).json({
+                        message: "Password doesn't match"
+                    });
+                }
+
+                if(response) {
+                    const token = jwt.sign({
+                        username: req.body.username
+                    }, config.secret, { expiresIn: "3h" });
+
+                    res.status(200).json({
+                        message: "Logged in successfully", 
+                        authorization: token
+                    });
+                }
+            });
+
+        })
+        .catch(err => {
+            res.status(500).json({
+                message: "Internal Server Error!"
+            });
+        });
 }
 
 const getUsers = (req, res, next) => {
     User
         .find()
         .select("email username password")
-        .then(result => {
-            if(result.length > 0) {
+        .then(users => {
+            if(users.length > 0) {
+
+                console.log(req.decoded);
                 res.status(200).json({
-                    "Total Users": result.length, 
-                    result
+                    "Total User(s)": users.length, 
+                    users
                 });
             } else {
                 res.status(200).json({
@@ -96,7 +148,18 @@ const getUsers = (req, res, next) => {
 }
 
 const getSingleUser = (req, res, next) => {
-    
+    const id = req.params.id;
+
+    User
+        .findById(id)
+        .then(user => {
+            req.status(200).json({
+                user
+            });
+        })
+        .catch(err => {
+            error: err
+        });
 }
 
 const updateUser = (req, res, next) => {

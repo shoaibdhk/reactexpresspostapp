@@ -22,7 +22,7 @@ const userSchema = new mongoose.Schema({
     phone: {
         type: String
     }
-});
+}, {timestamps: true});
 
 userSchema.pre('save', function(next) {
     let user = this;

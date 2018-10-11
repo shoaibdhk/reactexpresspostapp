@@ -2,6 +2,8 @@
 const express = require('express');
 const Router = express.Router();
 
+const checkAuth = require('../middlewares/auth');
+
 //controller functions
 const User = require('../controllers/user');
 
@@ -11,7 +13,7 @@ Router.post('/signup', User.signUp);
 
 Router.post('/login', User.logIn);
 
-Router.get('/', User.getUsers);
+Router.get('/', checkAuth, User.getUsers);
 
 Router.get('/:id', User.getSingleUser);
 
