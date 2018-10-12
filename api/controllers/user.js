@@ -2,7 +2,7 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 
 const User = require('../model/user');
-const config = require('../config/config');
+const { secret } = require('../config/config');
 
 const signUp = (req, res, next) => {
     if(req.body.username && req.body.email && req.body.password) {
@@ -37,7 +37,8 @@ const signUp = (req, res, next) => {
                                         .then(user => {
 
                                             const token = jwt.sign({
-                                                username: req.body.username
+                                                username: req.body.username, 
+                                                userId: user._id
                                             }, config.secret, { expiresIn: "3h" });
                                             
                                             res.status(201).json({
@@ -86,28 +87,23 @@ const logIn = (req, res, next) => {
         .then(user => {
             
             if(!user) {
-                res.status(404).json({
+                return res.status(404).json({
                     message: "No user found! Please provide right/valid information"
                 });
             }
 
             bcrypt.compare(req.body.password, user.password, function(err, response) {
-                if(err) {
-                    res.status(400).json({
-                        message: "Password doesn't match"
-                    });
-                }
-
-                if(!response) {
-                    res.status(400).json({
+                if(err || !response) {
+                    return res.status(400).json({
                         message: "Password doesn't match"
                     });
                 }
 
                 if(response) {
                     const token = jwt.sign({
-                        username: req.body.username
-                    }, config.secret, { expiresIn: "3h" });
+                        username: req.body.username, 
+                        userId: user._id
+                    }, secret, { expiresIn: "3h" });
 
                     res.status(200).json({
                         message: "Logged in successfully", 
@@ -124,14 +120,15 @@ const logIn = (req, res, next) => {
         });
 }
 
+//this controller is only for a super admin who can watch all the users information
 const getUsers = (req, res, next) => {
     User
         .find()
         .select("email username password")
         .then(users => {
+            
             if(users.length > 0) {
 
-                console.log(req.decoded);
                 res.status(200).json({
                     "Total User(s)": users.length, 
                     users
@@ -153,7 +150,14 @@ const getSingleUser = (req, res, next) => {
     User
         .findById(id)
         .then(user => {
-            req.status(200).json({
+            
+            if(req.decoded.userId !== id) {
+                return res.status(203).json({
+                    message: "I'm affraid, you are not authorized person to watch this information!"
+                });
+            }
+
+            res.status(200).json({
                 user
             });
         })
@@ -163,11 +167,38 @@ const getSingleUser = (req, res, next) => {
 }
 
 const updateUser = (req, res, next) => {
-    
+    const id = req.params.id;
+
+    if(req.decoded.userId !== id) {
+        return res.status(203).json({
+            message: "I'm affraid, you are not authorized person to update this information!"
+        });
+    }
+
+    User
+        .updateOne({ _id: id }, { $set: req.body })
+        .then(user => {
+            res.json({
+                message: "User information updated successfully!", 
+                user
+            });
+        })
+        .catch(err => {
+            
+            res.json({
+                errorMessage: err
+            });
+        });
 }
 
 const deleteUser = (req, res, next) => {
     const id = req.params.id;
+
+    if(req.decoded.userId !== id) {
+        return res.status(203).json({
+            message: "I'm affraid, you are not authorized person to Delete this information!"
+        });
+    }
 
     User
         .findOneAndDelete({_id: id})

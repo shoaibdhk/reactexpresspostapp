@@ -5,20 +5,20 @@ const Router = express.Router();
 const checkAuth = require('../middlewares/auth');
 
 //controller functions
-const User = require('../controllers/user');
+const { signUp, logIn, getUsers, getSingleUser, updateUser, deleteUser } = require('../controllers/user');
 
 //Routes
 
-Router.post('/signup', User.signUp);
+Router.post('/signup', signUp);
 
-Router.post('/login', User.logIn);
+Router.post('/login', logIn);
 
-Router.get('/', checkAuth, User.getUsers);
+Router.get('/', checkAuth, getUsers);
 
-Router.get('/:id', User.getSingleUser);
+Router.get('/:id', checkAuth, getSingleUser);
 
-Router.patch('/:id', User.updateUser);
+Router.patch('/:id', checkAuth, updateUser);
 
-Router.delete('/:id', User.deleteUser);
+Router.delete('/:id', checkAuth, deleteUser);
 
 module.exports = Router;
