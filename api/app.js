@@ -6,6 +6,7 @@ const cors = require('cors');
 
 const config = require('./config/config');
 
+// adding some comments will remove it after 5 days
 // Routers
 const postRoutes = require('./routes/post');
 const userRoutes = require('./routes/user');
